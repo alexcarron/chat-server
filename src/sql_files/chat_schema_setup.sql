@@ -1,0 +1,60 @@
+CREATE TABLE communities (
+	id SERIAL PRIMARY KEY,
+	name VARCHAR(48) NOT NULL UNIQUE
+);
+
+CREATE TABLE channels (
+	id SERIAL PRIMARY KEY,
+	community_id INTEGER NOT NULL REFERENCES communities(id),
+	name VARCHAR(48) NOT NULL,
+
+	UNIQUE (community_id, name)
+);
+
+CREATE TABLE users (
+	id SERIAL PRIMARY KEY,
+	username VARCHAR(24) NOT NULL UNIQUE,
+	password VARCHAR(128) NOT NULL,
+	session_key VARCHAR(128),
+	email VARCHAR(255) UNIQUE,
+	last_username_change_time TIMESTAMP
+);
+
+CREATE TABLE community_members (
+	community_id INTEGER NOT NULL REFERENCES communities(id)
+		ON DELETE CASCADE ON UPDATE CASCADE,
+	user_id INTEGER NOT NULL REFERENCES users(id)
+		ON DELETE CASCADE ON UPDATE CASCADE,
+
+	PRIMARY KEY (community_id, user_id)
+);
+
+CREATE TABLE suspensions (
+	id SERIAL PRIMARY KEY,
+	user_id INTEGER NOT NULL REFERENCES users(id),
+	community_id INTEGER NOT NULL REFERENCES communities(id),
+	expiration_time TIMESTAMP NOT NULL
+);
+
+CREATE TABLE messages (
+	id SERIAL PRIMARY KEY,
+	sender_user_id INTEGER NOT NULL REFERENCES users(id)
+		ON DELETE CASCADE ON UPDATE CASCADE,
+	message TEXT NOT NULL,
+	time_sent TIMESTAMP NOT NULL DEFAULT NOW(),
+	is_read BOOLEAN NOT NULL DEFAULT FALSE
+);
+
+CREATE TABLE direct_messages (
+	id INTEGER NOT NULL PRIMARY KEY REFERENCES messages(id)
+		ON DELETE CASCADE ON UPDATE CASCADE,
+	receiver_user_id INTEGER NOT NULL REFERENCES users(id)
+		ON DELETE CASCADE ON UPDATE CASCADE
+);
+
+CREATE TABLE channel_messages (
+	id INTEGER NOT NULL PRIMARY KEY REFERENCES messages(id)
+		ON DELETE CASCADE ON UPDATE CASCADE,
+	channel_id INTEGER NOT NULL REFERENCES channels(id)
+		ON DELETE CASCADE ON UPDATE CASCADE
+);

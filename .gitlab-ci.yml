@@ -1,0 +1,25 @@
+image:
+  name: kalrabb/swen344-pg-py-base:latest
+
+services:
+  - postgres:14
+
+variables:
+  POSTGRES_DB: swen344
+  POSTGRES_USER: swen344
+  POSTGRES_PASSWORD: whowatchesthewatchmen
+  PYTHON_RUN: python3
+
+before_script:
+  - pip install -r requirements.txt
+  - cp config/gitlab-credentials.yml config/db.yml
+  - $PYTHON_RUN --version
+  - $PYTHON_RUN src/server.py & # fire up the server before we run our tests
+
+  - sleep 3
+
+testrunner:
+  script:
+    - $PYTHON_RUN -m unittest -v # run the unit tests; -v prints the test being run
+
+  stage: test
